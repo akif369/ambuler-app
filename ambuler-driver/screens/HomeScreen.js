@@ -38,6 +38,7 @@ export default function Home({ navigation }) {
     });
   const [isConfirm, setIsConfirm] = useState([]);
   const [drivers, setDrivers] = useState([]);
+  const [user,setUser] = useState({number:"number",email:"email",name:"name"});
   const [currentLoc, setLocation] = useState("");
   const [viewPort, setViewPort] = useState({
     latitude: 10.184909,
@@ -120,7 +121,7 @@ export default function Home({ navigation }) {
 
   function onReach() {
     console.log("reached succesfully....");
-    Alert.alert("Are you There?", "number", [
+    Alert.alert("Are you There?", "Confirm payment" , [
       {
         text: "YES",
         onPress: async () => {
@@ -148,6 +149,7 @@ export default function Home({ navigation }) {
 
   const [userLocation, setUserLocation] = useState("");
   const [selectDriver, setSelectDriver] = useState("");
+  const [confirmUser,setConfirmUser] = useState({});
   const [snackbox, setSnackbox] = useState("");
   useEffect(() => {
     const intervalId = setInterval(async () => {
@@ -230,6 +232,17 @@ export default function Home({ navigation }) {
           Are you Reached?
         </Text>
       )}
+      {isConfirm.length === 0 ? (
+        <Text></Text>
+      ) : (
+        <Text
+          onPress={async()=>{
+            Alert.alert("User detail","Name: " + confirmUser?.name + "\nEmail: " + confirmUser?.email + "\nNumber " + confirmUser?.number)}}
+          style={{ ...styles.text_login,color:"aqua", marginLeft: -100 }}
+        >
+          USER DETAIL
+        </Text>
+      )}
       <View>
         {isConfirm.length !== 0 ? (
           <Text></Text>
@@ -264,6 +277,7 @@ export default function Home({ navigation }) {
           {drivers.map((item, i) => (
             <Marker
               onPress={() => {
+                setConfirmUser(item)
                 setSelectDriver(item._id);
                 Alert.alert("Confirm", "Are you Taking the trip?", [
                   {
@@ -284,7 +298,7 @@ export default function Home({ navigation }) {
           ))}
           {isConfirm.map((item, i) => (
             <Marker
-              onPress={() => {}}
+              onPress={()=>{}}
               key={item._id}
               image={require("../assets/test.jpg")}
               style={{ width: 4, height: 4 }}

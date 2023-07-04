@@ -1,5 +1,13 @@
 import { StatusBar } from "expo-status-bar";
-import { Alert, Button, Image, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Modal,
+  Button,
+  Image,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { API_URL } from "@env";
 import { useEffect, useState } from "react";
@@ -29,6 +37,9 @@ export default function Home({ navigation }) {
       );
     })();
   }, []);
+  const [visible, setVisible] = useState(false);
+  const showModal = () => setVisible(true);
+  const hideModal = () => setVisible(false);
   const [isConfirm, setIsConfirm] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [currentLoc, setLocation] = useState("");
@@ -44,52 +55,41 @@ export default function Home({ navigation }) {
   const [canTakenDriver, setCanTakenDriver] = useState(false);
   const [snackbox, setSnackbox] = useState("");
   useEffect(() => {
-    
-      
-      const intervalId = setInterval(() => {
-        if (canTakenDriver) return () => clearInterval(intervalId);
-        console.log("getting test detail " + canTakenDriver);
-        fetch(API_URL + "api/driver")
-          .then((e) => e.json())
-          .then((item) => {
-            setDrivers(item.driver);
-          })
-          .catch((err) => {});
-
-        }, 5000);
-        return () => clearInterval(intervalId);
-    
+    const intervalId = setInterval(() => {
+      if (canTakenDriver) return () => clearInterval(intervalId);
+      fetch(API_URL + "api/driver")
+        .then((e) => e.json())
+        .then((item) => {
+          setDrivers(item.driver);
+        })
+        .catch((err) => {});
+    }, 5000);
+    return () => clearInterval(intervalId);
   }, [canTakenDriver]);
 
-
-
   useEffect(() => {
-    
-      const intervalId = setInterval(async () => {
-        if (!enable) return () => clearInterval(intervalId);
-        const email = await getEmail();
-        fetch(API_URL + "api/findme?email=" + email)
-          .then((e) => e.json())
-          .then((item) => {
-            if (Object.keys(item).length !== 0) {
-              setSnackbox("Driver on way");
-              setCanTakenDriver(true);
-              setDrivers([])
-              setIsConfirm(item)
-              console.log(item)
-              // console.log(canTakenDriver);
-            }else{
-              setCanTakenDriver(false)
-              setIsConfirm([]);
-            }
-            
-          })
-          .catch((err) => {});
-        
-      }, 5000);
+    const intervalId = setInterval(async () => {
+      if (!enable) return () => clearInterval(intervalId);
+      const email = await getEmail();
+      fetch(API_URL + "api/findme?email=" + email)
+        .then((e) => e.json())
+        .then((item) => {
+          if (Object.keys(item).length !== 0) {
+            setSnackbox("Driver on way");
+            setCanTakenDriver(true);
+            setDrivers([]);
+            setIsConfirm(item);
+            console.log(item);
+            // console.log(canTakenDriver);
+          } else {
+            setCanTakenDriver(false);
+            setIsConfirm([]);
+          }
+        })
+        .catch((err) => {});
+    }, 5000);
 
-      return () => clearInterval(intervalId);
-    
+    return () => clearInterval(intervalId);
   }, [enable]);
 
   async function onLogout(e) {
@@ -173,6 +173,27 @@ export default function Home({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <Modal visible={visible} onDismiss={hideModal}>
+        <View style={styles.container}>
+          <View>
+          <Text style={[styles.text_login,styles.text_gap]}>
+            PAYMENT GATEWAY
+          </Text>
+            <Text
+              onPress={() => {
+               setVisible(false)
+              }}
+              style={styles.text_register}
+            >
+              CASH ON
+            </Text>
+            <Text  onPress={() => {
+               setVisible(false)
+              }} style={styles.text_login}>Other payment</Text>
+          </View>
+        </View>
+      </Modal>
+
       <View>
         <Text onPress={onLogout} style={styles.text_login}>
           LOGOUT
@@ -217,6 +238,7 @@ export default function Home({ navigation }) {
               {
                 text: "YES",
                 onPress: () => {
+                  setVisible(true)
                   onClickEmergency(true);
                 },
               },
@@ -252,7 +274,12 @@ const styles = StyleSheet.create({
   text_login: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 28,
+    fontSize: 18,
     marginTop: 10,
+    textAlign: "center",
   },
+  text_gap:{
+    marginVertical:200
+
+  }
 });

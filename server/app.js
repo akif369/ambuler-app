@@ -117,7 +117,7 @@ app.post("/api/register", async function requestHandler(req, res) {
     data.save();
     res.status(200).json({ error: false, message: "sucess user Created" });
   } else {
-    res.status(401).json({ error: true, message: "email address existed" });
+    res.status(401).json({ error: true, messsage: "email address existed" });
   }
 });
 
@@ -162,9 +162,10 @@ app.get("/api/getEmergency", async function requestHandler(req, res) {
     res.status(200).json({ driver: doc });
   } else res.end(301);
 });
-app.get("/api/driver/findme", async function requestHandler(req, res) {
+app.get("/api/driver/findUser", async function requestHandler(req, res) {
   const { email } = req.query;
-  const doc = await userModel.findOne({ customer: email });
+  const doc = await userModel.findOne({ email });
+  console.log(doc)
   if (doc !== null) res.status(200).json(doc);
   else {
     res.status(302).json({});
@@ -173,6 +174,7 @@ app.get("/api/driver/findme", async function requestHandler(req, res) {
 //for fetcting drever
 app.get("/api/findme", async function requestHandler(req, res) {
   const { email } = req.query;
+
   const doc = await driverModel.findOne({ customer: email });
   if (doc !== null) {
     res.status(200).json([doc]);
