@@ -68,7 +68,7 @@ app.post("/api/driver/loc", async function requestHandler(req, res) {
   console.log(req.body);
   const doc = await driverModel.findOne({ email });
   const update = { lat, lng };
-  await doc.updateOne(update);
+  if (doc) await doc.updateOne(update);
   res.end("200");
 });
 
@@ -140,7 +140,7 @@ app.post("/api/setCustomer", async function requestHandler(req, res) {
   const email = req.body.email;
   const doc = await driverModel.findOne({ email });
   const update = { customer };
-  await doc.updateOne(update);
+  if (doc) await doc.updateOne(update);
 
   res.end("200");
 });
@@ -150,7 +150,7 @@ app.post("/api/findCustomer", async function requestHandler(req, res) {
   const email = req.body.email;
   const doc = await driverModel.findOne({ email });
   const update = { customer };
-  await doc.updateOne(update);
+  if (doc) await doc.updateOne(update);
 
   res.end("200");
 });
@@ -175,9 +175,7 @@ app.get("/api/findme", async function requestHandler(req, res) {
   const { email } = req.query;
   const doc = await driverModel.findOne({ customer: email });
   if (doc !== null) {
-    res
-      .status(200)
-      .json([doc]);
+    res.status(200).json([doc]);
     console.log(doc);
   } else {
     res.status(302).json({});
@@ -190,7 +188,7 @@ app.post("/api/setEmergency", async function requestHandler(req, res) {
   const email = req.body.email;
   const doc = await userModel.findOne({ email });
   const update = { isEmergency };
-  await doc.updateOne(update);
+  if (doc) await doc.updateOne(update);
 
   res.end("200");
 });
