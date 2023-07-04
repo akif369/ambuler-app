@@ -5,7 +5,6 @@ const mongodb = require("./db/db");
 const app = express();
 const db = mongodb.connectDB();
 
-
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -86,13 +85,12 @@ app.post("/api/loc", async function requestHandler(req, res) {
 });
 
 app.post("/api/driver/setActive", async function requestHandler(req, res) {
-  console.log("clicked active  " +  req.body.email)
+  console.log("clicked active  " + req.body.email);
   const isActive = req.body.isActive;
   const email = req.body.email;
   const doc = await driverModel.findOne({ email });
   const update = { isActive };
-  if(doc)
-  await doc.updateOne(update);
+  if (doc) await doc.updateOne(update);
 
   res.end("200");
 });
@@ -157,8 +155,6 @@ app.post("/api/findCustomer", async function requestHandler(req, res) {
   res.end("200");
 });
 
-
-
 app.get("/api/getEmergency", async function requestHandler(req, res) {
   const doc = await userModel.find({ isEmergency: true });
   if (doc !== []) {
@@ -178,8 +174,12 @@ app.get("/api/driver/findme", async function requestHandler(req, res) {
 app.get("/api/findme", async function requestHandler(req, res) {
   const { email } = req.query;
   const doc = await driverModel.findOne({ customer: email });
-  if (doc !== null) res.status(200).json(doc);
-  else {
+  if (doc !== null) {
+    res
+      .status(200)
+      .json([doc]);
+    console.log(doc);
+  } else {
     res.status(302).json({});
   }
 });

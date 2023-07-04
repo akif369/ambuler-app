@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 // import GetLocation from 'react-native-get-location'
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage"; //storage featuring
-import { isEnabled } from "react-native/Libraries/Performance/Systrace";
 
 export default function Home({ navigation }) {
   useEffect(() => {
@@ -41,46 +40,57 @@ export default function Home({ navigation }) {
   });
   const [userLocation, setUserLocation] = useState("");
   const [selectDriver, setSelectDriver] = useState("");
-  const [enable,setEnable] = useState(false);
+  const [enable, setEnable] = useState(false);
+  const [canTakenDriver, setCanTakenDriver] = useState(false);
   const [snackbox, setSnackbox] = useState("");
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      if(!enable){
-      fetch(API_URL + "api/driver")
-        .then((e) => e.json())
-        .then((item) => {
-          setDrivers(item.driver);
-        })
-        .catch((err) => {});
+    
       
-        
-          return () => clearInterval(intervalId);
-      }
-    }, 5000);
-  
-  }, []);
+      const intervalId = setInterval(() => {
+        if (canTakenDriver) return () => clearInterval(intervalId);
+        console.log("getting test detail " + canTakenDriver);
+        fetch(API_URL + "api/driver")
+          .then((e) => e.json())
+          .then((item) => {
+            setDrivers(item.driver);
+          })
+          .catch((err) => {});
+
+        }, 5000);
+        return () => clearInterval(intervalId);
+    
+  }, [canTakenDriver]);
+
+
+
   useEffect(() => {
-   
-  
-    const intervalId = setInterval(async() => {
-      const email = await getEmail()
-      
-      fetch(API_URL + "api/findme?email="+email)
-        .then((e) => e.json())
-        .then((item) => {
-          if(item !== null)
-            setIsConfirm(JSON.parse(item));
-          console.log(item)
-        })
-        .catch((err) => {});
-    }, 5000);
+    
+      const intervalId = setInterval(async () => {
+        if (!enable) return () => clearInterval(intervalId);
+        const email = await getEmail();
+        fetch(API_URL + "api/findme?email=" + email)
+          .then((e) => e.json())
+          .then((item) => {
+            if (Object.keys(item).length !== 0) {
+              setSnackbox("Driver on way");
+              setCanTakenDriver(true);
+              setDrivers([])
+              setIsConfirm(item)
+              console.log(item)
+              // console.log(canTakenDriver);
+            }else{
+              setCanTakenDriver(false)
+              setIsConfirm([]);
+            }
+            
+          })
+          .catch((err) => {});
+        
+      }, 5000);
 
-    return () => clearInterval(intervalId);
-  
-
-  }, []);
-
-  
+      return () => clearInterval(intervalId);
+    
+  }, [enable]);
 
   async function onLogout(e) {
     async () => {
@@ -90,15 +100,15 @@ export default function Home({ navigation }) {
         console.log(e);
       }
     };
-    onClickEmergency(false)
+    onClickEmergency(false);
     navigation.reset({
       index: 0,
       routes: [{ name: "landing" }],
     });
   }
 
-  async function onConfirm(){
-    console.log(userLocation)
+  async function onConfirm() {
+    console.log(userLocation);
     const email = await getEmail();
     const message = await fetch(API_URL + "api/loc", {
       method: "POST",
@@ -108,12 +118,12 @@ export default function Home({ navigation }) {
       },
       body: JSON.stringify({
         email,
-        latitude:userLocation.latitude,
-        longitude:userLocation.longitude,
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
       }),
     })
       .then(async (response) => {
-        console.log(response.ok)
+        console.log(response.ok);
         // if (!response.ok) {
         //   if(response.status === 401)
         //   throw new Error(response.json().message);
@@ -123,10 +133,8 @@ export default function Home({ navigation }) {
         return response.json();
       })
       .catch((error) => {
-        console.log(
-          "there is problem with it= " + error
-        );
-        return {error:true,message:error.message}
+        console.log("there is problem with it= " + error);
+        return { error: true, message: error.message };
       });
 
     if (message.error) {
@@ -145,7 +153,6 @@ export default function Home({ navigation }) {
     }
   }
   async function onClickEmergency(value) {
-   
     const email = await getEmail();
     const mess = await fetch(API_URL + "api/setEmergency", {
       method: "POST",
@@ -156,8 +163,12 @@ export default function Home({ navigation }) {
 
       body: JSON.stringify({ isEmergency: value, email }),
     })
-      .then((e) =>{if(value)onConfirm();return e.json()})
+      .then((e) => {
+        if (value) onConfirm();
+        return e.json();
+      })
       .catch((err) => {});
+    setEnable(value);
   }
 
   return (
@@ -200,7 +211,20 @@ export default function Home({ navigation }) {
             />
           ))}
         </MapView>
-        <Text onPress={()=>{ Alert.alert("Are you sure?","Book a trip",[{text:"YES", onPress:()=>{onClickEmergency(true)}},{text:"NO"}]);}} style={styles.text_register}>
+        <Text
+          onPress={() => {
+            Alert.alert("Are you sure?", "Book a trip", [
+              {
+                text: "YES",
+                onPress: () => {
+                  onClickEmergency(true);
+                },
+              },
+              { text: "NO" },
+            ]);
+          }}
+          style={styles.text_register}
+        >
           Emergency
         </Text>
       </View>
